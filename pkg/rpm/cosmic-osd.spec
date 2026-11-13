@@ -1,6 +1,6 @@
 Name:           cosmic-osd
 Epoch:          1
-Version: 1.4.3
+Version: 1.4.4
 Release:        1%{?dist}
 Summary:        COSMIC OSD and polkit agent (Playtron fork)
 

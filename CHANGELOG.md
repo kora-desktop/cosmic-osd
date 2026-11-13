@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/kora-desktop/cosmic-osd/compare/v1.4.3...v1.4.4) (2026-11-13)
+
+
+### Bug Fixes
+
+* **audio:** keep the default sink when an earlier sink goes ([550a9d9](https://github.com/kora-desktop/cosmic-osd/commit/550a9d982a239597b510de21cd889a7ab0cb82af))
+
 ## [1.4.3](https://github.com/playtron-os/cosmic-osd/compare/v1.4.2...v1.4.3) (2026-11-02)
 
 
