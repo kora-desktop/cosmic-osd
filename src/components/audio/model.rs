@@ -50,9 +50,12 @@ impl Nodes {
         self.volume.remove(pos);
         self.volume_seen.remove(pos);
         self.mute_seen.remove(pos);
-        if self.active == Some(pos) {
-            self.active = None;
-        }
+        self.active = match self.active {
+            Some(active) if active == pos => None,
+            // The nodes after the removed one shift down by one.
+            Some(active) if active > pos => Some(active - 1),
+            active => active,
+        };
         true
     }
 
@@ -335,6 +338,70 @@ mod tests {
         assert!(matches!(
             model.update(Event::DefaultSink(11)),
             Some(Response::SinkVolume(40, false))
+        ));
+    }
+
+    /// Brings up HDMI (1), speakers (2) and a headset (3, the default) in that order.
+    fn connected_with_others() -> Model {
+        let mut model = Model::default();
+        for (node_id, device) in [(1, 101), (2, 102), (3, 103)] {
+            model.update(Event::Node(node_id, sink(Some(device))));
+        }
+        model.update(Event::DefaultSink(3));
+        for node_id in [1, 2, 3] {
+            model.update(Event::NodeVolume(node_id, 50 + node_id * 10, None));
+            model.update(Event::NodeMute(node_id, false));
+        }
+        model
+    }
+
+    /// A monitor going to sleep takes its HDMI sink with it, which sits before the
+    /// default in the list. The default must still be the one tracked.
+    #[test]
+    fn removing_an_earlier_sink_keeps_the_default() {
+        let mut model = connected_with_others();
+
+        model.update(Event::RemoveNode(1));
+        assert!(matches!(
+            model.update(Event::NodeVolume(3, 85, None)),
+            Some(Response::SinkVolume(85, false))
+        ));
+        assert!(matches!(
+            model.update(Event::NodeMute(3, true)),
+            Some(Response::SinkVolume(85, true))
+        ));
+    }
+
+    /// The monitor waking up adds its sink back at the end of the list.
+    #[test]
+    fn earlier_sink_coming_back_keeps_the_default() {
+        let mut model = connected_with_others();
+
+        model.update(Event::RemoveNode(1));
+        model.update(Event::Node(4, sink(Some(101))));
+        model.update(Event::NodeVolume(4, 60, None));
+        for volume in [85, 90] {
+            assert!(matches!(
+                model.update(Event::NodeVolume(3, volume, None)),
+                Some(Response::SinkVolume(v, false)) if v == volume
+            ));
+        }
+        assert_eq!(model.active_sink.volume, 90);
+    }
+
+    /// The rebuild as the settings daemon reports it when the new node comes up
+    /// before the old one goes: still quiet, and the next key press still shows.
+    #[test]
+    fn rebuild_before_removal_keeps_the_default() {
+        let mut model = connected_with_others();
+
+        assert!(model.update(Event::Node(4, sink(Some(103)))).is_none());
+        assert!(model.update(Event::DefaultSink(4)).is_none());
+        assert!(model.update(Event::NodeVolume(4, 80, None)).is_none());
+        model.update(Event::RemoveNode(3));
+        assert!(matches!(
+            model.update(Event::NodeVolume(4, 85, None)),
+            Some(Response::SinkVolume(85, false))
         ));
     }
 
