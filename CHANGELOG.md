@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/kora-desktop/cosmic-osd/compare/v1.4.4...v1.5.0) (2026-11-16)
+
+
+### Features
+
+* **config:** let a system turn the polkit agent off ([9c59c09](https://github.com/kora-desktop/cosmic-osd/commit/9c59c09b06fe2ee725a5a431c405115ac71c7c4c))
+
 ## [1.4.4](https://github.com/kora-desktop/cosmic-osd/compare/v1.4.3...v1.4.4) (2026-11-13)
 
 
