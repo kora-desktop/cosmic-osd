@@ -1195,7 +1195,9 @@ impl cosmic::Application for App {
 
         subscriptions.push(dbus::subscription().map(Msg::DBus));
 
-        if let Some(connection) = self.system_connection.clone() {
+        if let Some(connection) = self.system_connection.clone()
+            && crate::config::polkit_agent()
+        {
             subscriptions.push(polkit_agent::subscription(connection).map(Msg::PolkitAgent));
         }
 
