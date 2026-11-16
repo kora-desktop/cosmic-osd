@@ -30,3 +30,16 @@ pub fn value_indicators() -> bool {
         .and_then(|config| config.get::<bool>(VALUE_INDICATORS).ok())
         .unwrap_or(true)
 }
+
+const POLKIT_AGENT: &str = "polkit_agent";
+
+/// Whether this process is the session's polkit agent. A system whose own
+/// shell answers polkit sets this false in its default config
+/// (`/usr/share/cosmic/com.system76.CosmicOsd/v1/polkit_agent`), so the two
+/// never race to register for the session.
+pub fn polkit_agent() -> bool {
+    Config::new(OSD_CONFIG, 1)
+        .ok()
+        .and_then(|config| config.get::<bool>(POLKIT_AGENT).ok())
+        .unwrap_or(true)
+}
